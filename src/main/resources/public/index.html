@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Підкидання монетки</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .coin {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            margin: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .coin svg {
+            width: 70%;
+            height: 70%;
+            position: absolute;
+            fill: rgba(255, 255, 255, 0.9);
+        }
+
+        .coin.flip {
+            animation: flip 1s ease-in-out;
+        }
+
+        @keyframes flip {
+            0% { transform: rotateY(0); }
+            100% { transform: rotateY(720deg); }
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #666;
+            font-size: 14px;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .question-mark {
+            font-size: 72px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="coin" id="coin">
+            <span class="question-mark">?</span>
+            <svg class="heads" style="display: none;" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1" fill="none"/>
+                <text x="12" y="16" font-size="14" text-anchor="middle" fill="currentColor" style="font-family: Arial, sans-serif; font-weight: bold;">$</text>
+
+            </svg>
+            <svg class="tails" style="display: none;" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1" fill="none"/>
+                <text x="12" y="16" font-size="14" text-anchor="middle" fill="currentColor" style="font-family: Arial, sans-serif; font-weight: bold;">5</text>
+            </svg>
+        </div>
+        <button onclick="flipCoin()">Підкинути монетку</button>
+        <div class="result" id="result"></div>
+    </div>
+    <footer>
+        © Borys Kuzikov, Wellcom.it, SumDU, 2024
+    </footer>
+
+    <script>
+        async function flipCoin() {
+            const coin = document.getElementById('coin');
+            const result = document.getElementById('result');
+            const questionMark = coin.querySelector('.question-mark');
+            const headsIcon = coin.querySelector('.heads');
+            const tailsIcon = coin.querySelector('.tails');
+            
+            // Disable button during animation
+            const button = document.querySelector('button');
+            button.disabled = true;
+            
+            // Reset to question mark
+            questionMark.style.display = 'block';
+            headsIcon.style.display = 'none';
+            tailsIcon.style.display = 'none';
+            
+            // Add flip animation
+            coin.classList.add('flip');
+            
+            try {
+                const response = await fetch('/flip');
+                const data = await response.json();
+                
+                setTimeout(() => {
+                    coin.classList.remove('flip');
+                    const isHeads = data.result === 'heads';
+                    
+                    // Hide question mark and show appropriate icon
+                    questionMark.style.display = 'none';
+                    headsIcon.style.display = isHeads ? 'block' : 'none';
+                    tailsIcon.style.display = isHeads ? 'none' : 'block';
+                    
+                    const resultText = isHeads ? 'Орел' : 'Решка';
+                    result.textContent = `Результат: ${resultText}`;
+                    button.disabled = false;
+                }, 1000);
+            } catch (error) {
+                console.error('Error:', error);
+                result.textContent = 'Помилка! Спробуйте ще раз';
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html> 
